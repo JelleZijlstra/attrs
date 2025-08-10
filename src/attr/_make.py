@@ -138,7 +138,6 @@ class ClassProps(NamedTuple):
     match_args: bool
     str: bool
     getstate_setstate: bool
-    has_custom_setattr: bool
     on_setattr: Callable[[str, Any], Any]
     field_transformer: Callable[[Attribute], Attribute]
 
@@ -715,6 +714,7 @@ class _ClassBuilder:
         these,
         auto_attribs: bool,
         props: ClassProps,
+        has_custom_setattr: bool,
     ):
         attrs, base_attrs, base_map = _transform_attrs(
             cls,
@@ -749,7 +749,7 @@ class _ClassBuilder:
         self._is_exc = props.is_exception
         self._on_setattr = props.on_setattr
 
-        self._has_custom_setattr = props.has_custom_setattr
+        self._has_custom_setattr = has_custom_setattr
         self._wrote_own_setattr = False
 
         self._cls_dict["__attrs_attrs__"] = self._attrs
@@ -1558,13 +1558,16 @@ def attrs(
                 ("__getstate__", "__setstate__"),
                 default=slots,
             ),
-            has_custom_setattr=has_own_setattr,
             on_setattr=on_setattr,
             field_transformer=field_transformer,
         )
 
         builder = _ClassBuilder(
-            cls, these, auto_attribs=auto_attribs, props=props
+            cls,
+            these,
+            auto_attribs=auto_attribs,
+            props=props,
+            has_custom_setattr=has_own_setattr,
         )
 
         if props.repr is True:
